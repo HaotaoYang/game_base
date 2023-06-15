@@ -1,0 +1,19 @@
+{
+    application,
+    game_base,
+    [
+        {description, "An OTP application"},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {mod, {game_base_app, []}},
+        {applications, [
+            kernel,
+            stdlib,
+            fling
+        ]},
+        {env,[]},
+        {modules, []},
+        {licenses, ["Apache 2.0"]},
+        {links, []}
+    ]
+}.
