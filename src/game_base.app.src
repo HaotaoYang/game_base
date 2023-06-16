@@ -7,8 +7,8 @@
         {registered, []},
         {mod, {game_base_app, []}},
         {applications, [
-            kernel, stdlib, fling,
-            recon, cowboy, gproc
+            kernel, stdlib, sasl, ssl, crypto,
+            fling, recon, cowboy, gproc, hackney
         ]},
         {included_applications, [
             observer_cli, jwt, jsx
