@@ -7,10 +7,11 @@
         {registered, []},
         {mod, {game_base_app, []}},
         {applications, [
-            kernel,
-            stdlib,
-            fling,
-            recon
+            kernel, stdlib, fling,
+            recon, cowboy, gproc
+        ]},
+        {included_applications, [
+            observer_cli, jwt, jsx
         ]},
         {env,[]},
         {modules, []},
