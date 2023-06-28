@@ -8,17 +8,15 @@
     top/1
 ]).
 
--import(io, [format/1, format/2]).
-
 %%====================================================================
 %% API functions
 %%====================================================================
 help() ->
     shell_default:help(),
-    format("** user extended commands **~n"),
-    format("cmd(Str)   -- 返回shell命令的结果\n"),
-    format("top()      -- 输出排名前3的进程信息\n"),
-    format("top(N)     -- 输出排名前几的进程信息\n"),
+    io:format("** user extended commands **~n"),
+    io:format("cmd(Str)   -- 返回shell命令的结果\n"),
+    io:format("top()      -- 输出排名前3的进程信息\n"),
+    io:format("top(N)     -- 输出排名前几的进程信息\n"),
     true.
 
 cmd(Str) ->
