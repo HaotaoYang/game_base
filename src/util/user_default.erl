@@ -5,7 +5,12 @@
     help/0,
     cmd/1,
     top/0,
-    top/1
+    top/1,
+    system_info/1,
+    process_info/1,
+    process_info/2,
+    memory/0,
+    garbage_collect/0
 ]).
 
 %%====================================================================
@@ -42,6 +47,12 @@ top(N) ->
         memory => recon:proc_count(memory, N),
         message_queue_len => recon:proc_count(message_queue_len, N)
     }.
+
+system_info(Item) -> erlang:system_info(Item).
+
+process_info(Pid) -> erlang:process_info(Pid).
+
+process_info(Pid, ItemSpec) -> erlang:process_info(Pid, ItemSpec).
 
 memory() ->
     [
