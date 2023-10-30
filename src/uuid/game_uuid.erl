@@ -22,9 +22,9 @@
 -define(FLAG_TIME, 1672531200000). %% 2023-01-01 00:00:00 (UTC)
 -define(MILLI_TIMESTAMP, erlang:system_time(millisecond)).  %% 毫秒时间戳
 
-%% 64bit: 1bit-符号位 41bit-时间 10bit-服务器id 12bit-序列号
+%% 64bit: 1bit-符号位 41bit-时间 10bit-服务器id 12bit-序列号(可根据实际应用场景调整位数)
 -define(GEN_ID(MilliTime, ServerId, Seq), ((MilliTime - ?FLAG_TIME) bsl 22) + (ServerId bsl 12) + Seq).
--define(MAX_SERVER_ID, 1 bsl 10).   % 最大值 1048
+-define(MAX_SERVER_ID, 1 bsl 10).   % 最大值 1024
 -define(MAX_SEQ_ID, 1 bsl 12).      % 最大值 4096
 
 %%%===================================================================
