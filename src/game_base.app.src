@@ -11,7 +11,7 @@
             fling, recon, cowboy, gproc, hackney
         ]},
         {included_applications, [
-            observer_cli, jwt, jsx
+            observer_cli, jwt, jsx, tools, runtime_tools
         ]},
         {env,[]},
         {modules, []},
