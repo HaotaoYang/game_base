@@ -10,7 +10,12 @@
     process_info/1,
     process_info/2,
     memory/0,
-    garbage_collect/0
+    garbage_collect/0,
+    eprof_start/1,
+    eprof_stop/0,
+    fprof_start/1,
+    fprof_start_pid/1,
+    fprof_stop/0
 ]).
 
 %%====================================================================
