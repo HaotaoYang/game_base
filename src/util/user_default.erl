@@ -37,9 +37,9 @@ help() ->
     io:format("ets:info(T, Item)            -- 获取ets表相关信息\n"),
     io:format("memory()                     -- 查看当前节点内存信息\n"),
     io:format("garbage_collect()            -- 回收所有进程内存\n"),
-    io:format("eprof_start(AppList)         -- 监控指定的app列表，请谨慎使用\n"),
+    io:format("eprof_start(AppList)         -- 监控指定的app列表，请勿在生产环境使用\n"),
     io:format("eprof_stop()                 -- 查看监控的结果信息\n"),
-    io:format("fprof_start(AppList)         -- 监控指定的app列表并写入文件，请谨慎使用\n"),
+    io:format("fprof_start(AppList)         -- 监控指定的app列表并写入文件，请勿在生产环境使用\n"),
     io:format("fprof_start_pid(Pid)         -- 监控单个进程并写入文件\n"),
     io:format("fprof_stop()                 -- 查看监控的结果信息并写入文件\n"),
     true.
@@ -176,52 +176,47 @@ format_fprof_analyze() ->
         {ok, [_, [{totals, _, _, TotalOWN}] | Rest]} ->
             OWNs =
                 lists:flatmap(
-                    fun({MFA, _, _, OWN}) ->
+                    fun({MFA, CNT, _, OWN}) ->
                         Percent = OWN * 100 / TotalOWN,
                         case round(Percent) of
                             0 -> [];
-                            _ -> [{mfa_to_list(MFA), Percent}]
+                            _ -> [{mfa_to_list(MFA), integer_to_list(CNT), format_float(OWN, 3), format_float(Percent, 2) ++ "%"}]
                         end
                     end,
                     Rest
                 ),
             ACCs = collect_accs(Rest),
-            MaxACC = find_max(ACCs),
-            MaxOWN = find_max(OWNs),
+            {MaxACC1, MaxACC2, MaxACC3} = find_max(ACCs),
+            {MaxOWN1, MaxOWN2, MaxOWN3} = find_max(OWNs),
             io:format("=== Sorted by OWN:~n"),
+            format_print("MFA", MaxACC1, "CNT", MaxACC2, "OWN/ACC", MaxACC3, "Percent"),
             lists:foreach(
-                fun({MFA, Per}) ->
-                    L = length(MFA),
-                    S = lists:duplicate(MaxOWN - L + 2, $ ),
-                    io:format("~s~s~.2f%~n", [MFA, S, Per])
+                fun({MFA, CNT, Time, Per}) ->
+                    format_print(MFA, MaxACC1, CNT, MaxACC2, Time, MaxACC3, Per)
                 end,
-                lists:reverse(lists:keysort(2, OWNs))
+                lists:reverse(lists:keysort(4, OWNs))
             ),
             io:format("~n=== Sorted by ACC:~n"),
+            format_print("MFA", MaxACC1, "CNT", MaxACC2, "OWN/ACC", MaxACC3, "Percent"),
             lists:foreach(
-                fun({MFA, Per}) ->
-                    L = length(MFA),
-                    S = lists:duplicate(MaxACC - L + 2, $ ),
-                    io:format("~s~s~.2f%~n", [MFA, S, Per])
+                fun({MFA, CNT, Time, Per}) ->
+                    format_print(MFA, MaxOWN1, CNT, MaxOWN2, Time, MaxOWN3, Per)
                 end,
-                lists:reverse(lists:keysort(2, ACCs))
+                lists:reverse(lists:keysort(4, ACCs))
             );
         Err ->
             Err
     end.
 
+format_float(FloatTime, Num) ->
+    [StrTime] = io_lib:format("~p", [FloatTime]),
+    [IntStr, _] = string:tokens(StrTime, "."),
+    string:left(StrTime, length(IntStr) + 1 + Num, $0).
+
 mfa_to_list({M, F, A}) ->
     atom_to_list(M) ++ ":" ++ atom_to_list(F) ++ "/" ++ integer_to_list(A);
 mfa_to_list(F) when is_atom(F) ->
     atom_to_list(F).
-
-find_max(List) ->
-    find_max(List, 0).
-
-find_max([{V, _}|Tail], Acc) ->
-    find_max(Tail, lists:max([length(V), Acc]));
-find_max([], Acc) ->
-    Acc.
 
 collect_accs(List) ->
     List1 = lists:filter(
@@ -247,14 +242,31 @@ collect_accs(List) ->
 calculate(List1) ->
     TotalACC = lists:sum([A || {_, _, A, _} <- List1]),
     List2 = lists:foldl(
-        fun({MFA, _, ACC, _}, NewList) ->
+        fun({MFA, CNT, ACC, _}, NewList) ->
             Percent = ACC * 100 / TotalACC,
             case round(Percent) of
                 0 -> NewList;
-                _ -> [{mfa_to_list(MFA), Percent} | NewList]
+                _ -> [{mfa_to_list(MFA), integer_to_list(CNT), format_float(ACC, 3), format_float(Percent, 2) ++ "%"} | NewList]
             end
         end,
         [],
         List1
     ),
     lists:reverse(List2).
+
+find_max(List) ->
+    find_max(List, {3, 3, 7}).
+
+find_max([{V1, V2, V3, _} | Tail], {Acc1, Acc2, Acc3}) ->
+    find_max(Tail, {max(length(V1), Acc1), max(length(V2), Acc2), max(length(V3), Acc3)});
+find_max([], Acc) ->
+    Acc.
+
+format_print(MFA, MaxLen1, CNT, MaxLen2, Time, MaxLen3, Per) ->
+    L1 = length(MFA),
+    S1 = lists:duplicate(MaxLen1 - L1 + 2, $ ),
+    L2 = length(CNT),
+    S2 = lists:duplicate(MaxLen2 - L2 + 2, $ ),
+    L3 = length(Time),
+    S3 = lists:duplicate(MaxLen3 - L3 + 2, $ ),
+    io:format("~s~s~s~s~s~s~s~n", [MFA, S1, CNT, S2, Time, S3, Per]).
