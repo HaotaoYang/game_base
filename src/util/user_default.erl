@@ -186,13 +186,13 @@ format_fprof_analyze() ->
                     Rest
                 ),
             ACCs = collect_accs(Rest),
-            {MaxACC1, MaxACC2, MaxACC3} = find_max(ACCs),
             {MaxOWN1, MaxOWN2, MaxOWN3} = find_max(OWNs),
+            {MaxACC1, MaxACC2, MaxACC3} = find_max(ACCs),
             io:format("=== Sorted by OWN:~n"),
-            format_print("MFA", MaxACC1, "CNT", MaxACC2, "OWN/ACC", MaxACC3, "Percent"),
+            format_print("MFA", MaxOWN1, "CNT", MaxOWN2, "OWN/ACC", MaxOWN3, "Percent"),
             lists:foreach(
                 fun({MFA, CNT, Time, Per}) ->
-                    format_print(MFA, MaxACC1, CNT, MaxACC2, Time, MaxACC3, Per)
+                    format_print(MFA, MaxOWN1, CNT, MaxOWN2, Time, MaxOWN3, Per)
                 end,
                 lists:reverse(lists:keysort(4, OWNs))
             ),
@@ -200,7 +200,7 @@ format_fprof_analyze() ->
             format_print("MFA", MaxACC1, "CNT", MaxACC2, "OWN/ACC", MaxACC3, "Percent"),
             lists:foreach(
                 fun({MFA, CNT, Time, Per}) ->
-                    format_print(MFA, MaxOWN1, CNT, MaxOWN2, Time, MaxOWN3, Per)
+                    format_print(MFA, MaxACC1, CNT, MaxACC2, Time, MaxACC3, Per)
                 end,
                 lists:reverse(lists:keysort(4, ACCs))
             );
