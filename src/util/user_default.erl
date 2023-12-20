@@ -255,7 +255,7 @@ calculate(List1) ->
     lists:reverse(List2).
 
 find_max(List) ->
-    find_max(List, {3, 3, 7}).
+    find_max(List, {3, 7, 7}).
 
 find_max([{V1, V2, V3, _} | Tail], {Acc1, Acc2, Acc3}) ->
     find_max(Tail, {max(length(V1), Acc1), max(length(V2), Acc2), max(length(V3), Acc3)});
