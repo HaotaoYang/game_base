@@ -185,7 +185,7 @@ format_fprof_analyze() ->
                     end,
                     Rest
                 ),
-            ACCs = collect_accs(Rest),
+            ACCs = collect_accs(lists:reverse(lists:keysort(3, Rest))),
             {MaxOWN1, MaxOWN2, MaxOWN3} = find_max(OWNs),
             {MaxACC1, MaxACC2, MaxACC3} = find_max(ACCs),
             io:format("=== Sorted by OWN:~n"),
@@ -194,7 +194,7 @@ format_fprof_analyze() ->
                 fun({MFA, CNT, Time, Per}) ->
                     format_print(MFA, MaxOWN1, CNT, MaxOWN2, Time, MaxOWN3, Per)
                 end,
-                lists:reverse(lists:keysort(4, OWNs))
+                OWNs
             ),
             io:format("~n=== Sorted by ACC:~n"),
             format_print("MFA", MaxACC1, "CNT", MaxACC2, "OWN/ACC", MaxACC3, "Percent"),
@@ -202,7 +202,7 @@ format_fprof_analyze() ->
                 fun({MFA, CNT, Time, Per}) ->
                     format_print(MFA, MaxACC1, CNT, MaxACC2, Time, MaxACC3, Per)
                 end,
-                lists:reverse(lists:keysort(4, ACCs))
+                ACCs
             );
         Err ->
             Err
@@ -219,7 +219,7 @@ mfa_to_list(F) when is_atom(F) ->
     atom_to_list(F).
 
 collect_accs(List) ->
-    List1 = lists:filter(
+    NewList = lists:filter(
         fun({{sys, _, _}, _, _, _}) ->
             false;
             ({suspend, _, _, _}) ->
@@ -237,22 +237,20 @@ collect_accs(List) ->
         end,
         List
     ),
-    calculate(List1).
+    calculate(NewList).
 
-calculate(List1) ->
-    TotalACC = lists:sum([A || {_, _, A, _} <- List1]),
-    List2 = lists:foldl(
-        fun({MFA, CNT, ACC, _}, NewList) ->
+calculate(List) ->
+    TotalACC = lists:sum([A || {_, _, A, _} <- List]),
+    lists:flatmap(
+        fun({MFA, CNT, ACC, _}) ->
             Percent = ACC * 100 / TotalACC,
             case round(Percent) of
-                0 -> NewList;
-                _ -> [{mfa_to_list(MFA), integer_to_list(CNT), format_float(ACC, 3), format_float(Percent, 2) ++ "%"} | NewList]
+                0 -> [];
+                _ -> [{mfa_to_list(MFA), integer_to_list(CNT), format_float(ACC, 3), format_float(Percent, 2) ++ "%"}]
             end
         end,
-        [],
-        List1
-    ),
-    lists:reverse(List2).
+        List
+    ).
 
 find_max(List) ->
     find_max(List, {3, 7, 7}).
