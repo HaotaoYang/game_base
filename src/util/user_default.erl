@@ -15,7 +15,8 @@
     eprof_stop/0,
     fprof_start/1,
     fprof_start_pid/1,
-    fprof_stop/0
+    fprof_stop/0,
+    fprof_start_mfa/3
 ]).
 
 %%====================================================================
@@ -42,6 +43,7 @@ help() ->
     io:format("fprof_start(AppList)         -- 监控指定的app列表并写入文件，请勿在生产环境使用\n"),
     io:format("fprof_start_pid(Pid)         -- 监控单个进程并写入文件\n"),
     io:format("fprof_stop()                 -- 查看监控的结果信息并写入文件\n"),
+    io:format("fprof_start_mfa(M, F, A)     -- 监控函数并分析性能结果\n"),
     true.
 
 cmd(Str) ->
@@ -135,6 +137,12 @@ fprof_stop() ->
     fprof:profile({file, "./log/fprof.trace"}),
     fprof:analyse([totals, no_details, {sort, own}, no_callers, {dest, "./log/fprof.analysis"}]),
     fprof:stop(),
+    format_fprof_analyze().
+
+fprof_start_mfa(M, F, A) ->
+    fprof:apply(M, F, A, [{file, "./log/fprof.trace"}]),
+    fprof:profile({file, "./log/fprof.trace"}),
+    fprof:analyse([totals, no_details, {sort, own}, no_callers, {dest, "./log/fprof.analysis"}]),
     format_fprof_analyze().
 
 %%====================================================================
