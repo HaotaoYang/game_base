@@ -49,7 +49,7 @@ gen_id(ServerId) when ServerId < ?MAX_SERVER_ID ->
 %%%===================================================================
 
 init([]) ->
-    ets:new(?ETS_TABLE, [named_table, public, set]),
+    ets:new(?ETS_TABLE, [named_table, public, set, write_concurrency, read_concurrency]),
     start_clear_timer(),
     {ok, #state{}}.
 
